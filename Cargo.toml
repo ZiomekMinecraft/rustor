@@ -1,0 +1,14 @@
+[package]
+name = "rustor"
+version = "0.0.1"
+edition = "2021"
+description = "A way to use Tor in Rust"
+license-file = "LICENSE"
+readme = "README.md"
+authors = ["MZ"]
+repository = "https://github.com/ZiomekMinecraft/rustor"
+keywords = ["tor", "rust", "tor-rs", "tor-rust", "tor-rustor"]
+categories = ["network-programming"]
+publish = true
+
+[dependencies]
