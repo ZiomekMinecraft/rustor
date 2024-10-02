@@ -3,7 +3,7 @@ const CELL_BODY_LEN: usize = 509;
 // trait for serializing and deserializing tor objects
 #[allow(dead_code)]
 trait TorSerializer {
-    fn to_bytes(&self) -> Vec<u8>;
+    fn to_bytes(&self) -> Result<Vec<u8>, &'static str>;
     fn from_bytes(bytes: &[u8], version: u8) -> Result<Self, &'static str> where Self: Sized;
 }
 
@@ -64,8 +64,8 @@ enum CellCommand {
 }
 
 impl TorSerializer for CellCommand {
-    fn to_bytes(&self) -> Vec<u8> {
-        vec![self.to_owned() as u8]
+    fn to_bytes(&self) -> Result<Vec<u8>, &'static str> {
+        Ok(vec![self.to_owned() as u8])
     }
     fn from_bytes(bytes: &[u8], _: u8) -> Result<Self, &'static str> where Self: Sized {
         match CellCommand::from(bytes[0]) {
@@ -122,7 +122,7 @@ impl Cell {
 impl TorSerializer for Cell {
 
     #[allow(dead_code)]
-    fn to_bytes(&self) -> Vec<u8> {
+    fn to_bytes(&self) -> Result<Vec<u8>, &'static str> {
         let mut bytes: Vec<u8> = Vec::new();
 
         match &self.circ_id {
@@ -134,7 +134,7 @@ impl TorSerializer for Cell {
             }
         }
 
-        let command_bytes = self.command.to_bytes().first().unwrap().to_owned();
+        let command_bytes = self.command.to_bytes().unwrap().first().unwrap().to_owned();
         bytes.extend_from_slice(&[command_bytes]);
 
         match &self.body {
@@ -147,7 +147,7 @@ impl TorSerializer for Cell {
             }
         }
 
-        bytes
+        Ok(bytes)
     }
     
     #[allow(dead_code)]
@@ -213,7 +213,7 @@ mod tests {
     #[test]
     fn test_cell_command_tor_serializer_1() {
         let command = CellCommand::CREATE;
-        let bytes = command.to_bytes();
+        let bytes = command.to_bytes().unwrap();
         let new_command = CellCommand::from_bytes(&bytes, 0).unwrap();
         assert_eq!(command, new_command);
     }
@@ -221,7 +221,7 @@ mod tests {
     #[test]
     fn test_cell_command_tor_serializer_2() {
         let command = CellCommand::VERSIONS;
-        let bytes = command.to_bytes();
+        let bytes = command.to_bytes().unwrap();
         let new_command = CellCommand::from_bytes(&bytes, 0).unwrap();
         assert_eq!(command, new_command);
     }
@@ -244,7 +244,7 @@ mod tests {
         let body = CellBody::Fixed([1; CELL_BODY_LEN]);
 
         let cell = Cell::new(circ_id.clone(), command.clone(), body.clone());
-        let bytes = cell.to_bytes();
+        let bytes = cell.to_bytes().unwrap();
         let new_cell = Cell::from_bytes(&bytes, 1).unwrap();
         
         assert_eq!(cell, new_cell);
