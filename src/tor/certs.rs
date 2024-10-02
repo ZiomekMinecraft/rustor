@@ -1,5 +1,6 @@
 use std::fmt::Error;
 
+#[allow(dead_code)]
 struct RawCert {
     cert_type: u8,
     cert_len: u16,
@@ -15,6 +16,7 @@ impl RawCert {
         }
     }
 
+    #[allow(dead_code)]
     fn get_from_bytes(bytes: &Vec<u8>) -> Result<Vec<Self>, Error> {
         let numbers_of_certs = bytes.get(0).unwrap().to_owned();
         let mut certs = Vec::new();
