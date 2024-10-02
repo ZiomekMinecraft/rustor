@@ -9,14 +9,14 @@ trait TorSerializer {
 
 // CircidLen is a enum that holds the circuit id length
 #[derive(Debug, Clone, PartialEq)]
-enum CircidLen{
+enum CircidId{
     LEGACY(u16),
     MODERN(u32)
 }
 
-impl Default for CircidLen {
+impl Default for CircidId {
     fn default() -> Self {
-        CircidLen::MODERN(0)
+        CircidId::MODERN(0)
     }
     
 }
@@ -104,13 +104,13 @@ impl From<u8> for CellCommand {
 // Cell is a struct that holds the cell
 #[derive(Debug, Clone, PartialEq, Default)]
 struct Cell{
-    circ_id: CircidLen,
+    circ_id: CircidId,
     command: CellCommand,
     body: CellBody
 }
 
 impl Cell {
-    fn new(circ_id: CircidLen, command: CellCommand, body: CellBody) -> Self {
+    fn new(circ_id: CircidId, command: CellCommand, body: CellBody) -> Self {
         Cell {
             circ_id,
             command,
@@ -126,10 +126,10 @@ impl TorSerializer for Cell {
         let mut bytes: Vec<u8> = Vec::new();
 
         match &self.circ_id {
-            CircidLen::LEGACY(circ_id) => {
+            CircidId::LEGACY(circ_id) => {
                 bytes.extend_from_slice(&circ_id.to_be_bytes());
             },
-            CircidLen::MODERN(circ_id) => {
+            CircidId::MODERN(circ_id) => {
                 bytes.extend_from_slice(&circ_id.to_be_bytes());
             }
         }
@@ -157,12 +157,12 @@ impl TorSerializer for Cell {
 
         let circ_id = match version < 4 {
             true => {
-                let circid_len = CircidLen::LEGACY(u16::from_be_bytes([bytes[ptr], bytes[ptr+1]]));
+                let circid_len = CircidId::LEGACY(u16::from_be_bytes([bytes[ptr], bytes[ptr+1]]));
                 ptr += 2;
                 circid_len
             },
             false => {
-                let circid_len = CircidLen::MODERN(
+                let circid_len = CircidId::MODERN(
                     u32::from_be_bytes([bytes[ptr], bytes[ptr+1], bytes[ptr+2], bytes[ptr+3]]));
                 ptr += 4;
                 circid_len
@@ -200,8 +200,8 @@ mod tests {
 
     #[test]
     fn test_curcid_len_default() {
-        let circ_id = CircidLen::default();
-        assert_eq!(circ_id, CircidLen::MODERN(0));
+        let circ_id = CircidId::default();
+        assert_eq!(circ_id, CircidId::MODERN(0));
     }
 
     #[test]
@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_cell_new() {
-        let circ_id = CircidLen::MODERN(1);
+        let circ_id = CircidId::MODERN(1);
         let command = CellCommand::CREATE;
         let body = CellBody::Fixed([1; CELL_BODY_LEN]);
         let cell = Cell::new(circ_id.clone(), command.clone(), body.clone());
@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_cell_tor_serializer_legacy() {
-        let circ_id = CircidLen::LEGACY(1);
+        let circ_id = CircidId::LEGACY(1);
         let command = CellCommand::CREATE;
         let body = CellBody::Fixed([1; CELL_BODY_LEN]);
 
