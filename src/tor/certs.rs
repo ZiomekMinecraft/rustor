@@ -1,5 +1,6 @@
 use std::fmt::Error;
 
+#[derive(Debug, PartialEq, Clone, Default)]
 #[allow(dead_code)]
 struct RawCert {
     cert_type: u8,
