@@ -39,6 +39,7 @@ impl Default for CellBody {
 // CellCommand is a enum that holds the cell command
 #[derive(Debug, Clone, PartialEq, Default)]
 #[allow(non_camel_case_types, dead_code)]
+#[repr(u8)]
 enum CellCommand {    
     // FIXED
     #[default]
