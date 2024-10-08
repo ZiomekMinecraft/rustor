@@ -39,8 +39,7 @@ impl Default for CellBody {
 // CellCommand is a enum that holds the cell command
 #[derive(Debug, Clone, PartialEq, Default)]
 #[allow(non_camel_case_types, dead_code)]
-enum CellCommand {
-    Unknown = -1,
+enum CellCommand {    
     // FIXED
     #[default]
     PADDING = 0,          // circuit_id is 0
