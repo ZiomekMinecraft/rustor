@@ -1,3 +1,5 @@
+use std::panic::panic_any;
+
 const CELL_BODY_LEN: usize = 509;
 
 // trait for serializing and deserializing tor objects
@@ -68,34 +70,36 @@ impl TorSerializer for CellCommand {
         Ok(vec![self.to_owned() as u8])
     }
     fn from_bytes(bytes: &[u8], _: u8) -> Result<Self, &'static str> where Self: Sized {
-        match CellCommand::from(bytes[0]) {
-            CellCommand::Unknown => Err("Unknown command"),
-            command => Ok(command)
+        match CellCommand::try_from(bytes[0]) {
+            Err(error) => panic_any(error),
+            Ok(command) => Ok(command)
         } 
     }
 }
 
-impl From<u8> for CellCommand {
-    fn from(num: u8) -> Self {
+impl TryFrom<u8> for CellCommand {
+    type Error = &'static str;
+
+    fn try_from(num: u8) -> Result<Self, Self::Error> {
         match num {
-            0 => CellCommand::PADDING,
-            1 => CellCommand::CREATE,
-            2 => CellCommand::CREATED,
-            3 => CellCommand::RELAY,
-            4 => CellCommand::DESTROY,
-            5 => CellCommand::CREATE_FAST,
-            6 => CellCommand::CREATED_FAST,
-            7 => CellCommand::VERSIONS,
-            8 => CellCommand::NETINFO,
-            9 => CellCommand::RELAY_EARLY,
-            10 => CellCommand::CREATE2,
-            11 => CellCommand::CREATED2,
-            12 => CellCommand::PADDING_NEGOTIATE,
-            128 => CellCommand::VPADDING,
-            129 => CellCommand::CERTS,
-            130 => CellCommand::AUTH_CHALLENGE,
-            131 => CellCommand::AUTHENTICATE,
-            _ => CellCommand::Unknown
+            0 => Ok(CellCommand::PADDING),
+            1 => Ok(CellCommand::CREATE),
+            2 => Ok(CellCommand::CREATED),
+            3 => Ok(CellCommand::RELAY),
+            4 => Ok(CellCommand::DESTROY),
+            5 => Ok(CellCommand::CREATE_FAST),
+            6 => Ok(CellCommand::CREATED_FAST),
+            7 => Ok(CellCommand::VERSIONS),
+            8 => Ok(CellCommand::NETINFO),
+            9 => Ok(CellCommand::RELAY_EARLY),
+            10 => Ok(CellCommand::CREATE2),
+            11 => Ok(CellCommand::CREATED2),
+            12 => Ok(CellCommand::PADDING_NEGOTIATE),
+            128 => Ok(CellCommand::VPADDING),
+            129 => Ok(CellCommand::CERTS),
+            130 => Ok(CellCommand::AUTH_CHALLENGE),
+            131 => Ok(CellCommand::AUTHENTICATE),
+            _ => Err("Invalid command")
         }
     }
     
@@ -172,9 +176,9 @@ impl TorSerializer for Cell {
         let command_num = bytes[ptr];
         ptr += 1;
 
-        let command =  match CellCommand::from(command_num) {
-            CellCommand::Unknown => return Err("Get command failed"),
-            command => command
+        let command =  match CellCommand::try_from(command_num) {
+            Err(error) => return Err(error),
+            Ok(command) => command
         };
 
         let body: CellBody = {
