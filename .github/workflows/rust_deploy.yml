@@ -6,6 +6,7 @@ on:
 
 jobs:
   tests:
+    if: '!github.event.prerelease'
     uses: ./.github/workflows/rust.yml
 
   deploy_to_crates_dot_io:
