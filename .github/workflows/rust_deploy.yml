@@ -12,16 +12,12 @@ jobs:
     name: Deploy to crates.io
     runs-on: ubuntu-latest
     needs: tests
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Rust
-      uses: actions-rust-lang/setup-rust-toolchain@v1
-    - name: Set default Rust version
-      run: rustup default stable
-    - name: Deploy
-      run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
-      env:
-        CARGO_TERM_COLOR: always
-        RUSTUP_HOME: ${{ runner.workspace }}/rustup
-        CARGO_HOME: ${{ runner.workspace }}/cargo
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v2
+        with:
+          registry-token: ${{ secrets.CRATES_IO_TOKEN }}
