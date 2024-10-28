@@ -1,0 +1,40 @@
+name: Rust Deploy
+
+on:
+    release:
+        types: [created]
+
+jobs:
+    test:
+      name: Build and test for deploy ( ${{ matrix.rust }} )
+  
+      runs-on: ubuntu-latest
+  
+      strategy:
+        matrix:
+          rust: [stable, beta, nightly]
+  
+      steps:
+        - uses: actions/checkout@v4
+        - name: Install Rust
+          run: rustup toolchain install ${{ matrix.rust }}
+        - name: Set Rust version
+          run: rustup default ${{ matrix.rust }}
+        - name: Build
+          run: cargo build --verbose
+        - name: Run tests
+          run: cargo test --verbose
+
+    deploy_to_crates_dot_io:
+        name: Deploy to crates.io
+        runs-on: ubuntu-latest
+        needs: test
+
+        steps:
+        - uses: actions/checkout@v4
+        - name: Deploy
+          run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+          env:
+              CARGO_TERM_COLOR: always
+              RUSTUP_HOME: ${{ runner.workspace }}/rustup
+              CARGO_HOME: ${{ runner.workspace }}/cargo
